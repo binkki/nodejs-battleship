@@ -1,26 +1,16 @@
 {
-  "include": ["./src/**/*.ts"],
-  "exclude": ["./node_modules"],
   "compilerOptions": {
-    "target": "ES2020",
-    "lib": ["ESNext"],
-    "module": "CommonJS",
-    "rootDir": "./",
+    "target": "es2016",
+    "module": "ESNext",
     "moduleResolution": "Node",
-    "baseUrl": "./src",
-    "sourceMap": true,
-    "removeComments": true,
-    "allowSyntheticDefaultImports": true,
+    "rootDir": "./",
+    "outDir": "./dist",
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "strict": true,
-    "strictNullChecks": true,
-    "strictFunctionTypes": true,
-    "strictBindCallApply": true,   
-    "strictPropertyInitialization": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "noUncheckedIndexedAccess": true,
-    "skipLibCheck": true
-  }
+    "skipLibCheck": true,
+    "allowJs": true
+  },
+  "include": ["**/*.ts", "src/**/*", "index.ts"],
+  "exclude": ["node_modules", "**/*.spec.ts"]
 }

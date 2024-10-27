@@ -7,7 +7,7 @@
         "start-frontend": "node ./index.js",
         "start:dev": "nodemon ./index.js",
         "start-ws": "tsx ./src/websocket_server/index.ts",
-        "start": "npm run start-frontend & npm run start-ws",
+        "start": "tsx start.ts",
         "test": "echo \"Error: no test specified\" & exit 1"
     },
     "author": "Andrei Auchynnikau",
