@@ -1,6 +1,7 @@
 import { WebSocketServer, WebSocket } from "ws";
 import { config } from 'dotenv';
 import { messageHandler } from './handlers'
+import { User } from "./types";
 
 
 config();
@@ -12,9 +13,11 @@ export const wsServer = new WebSocketServer({
   console.log(`Start websocket server on the ${port} port!`);
 });
 
-wsServer.on("connection", (ws: WebSocket) => {
+wsServer.on("connection", (ws: WebSocket, req) => {
   ws.on("error", console.error);
-  ws.on("message", (message) => messageHandler(ws, message));
+  ws.on("message", (message) => {
+    messageHandler(ws, req.headers['sec-websocket-key'] ?? "", message);
+  });
 });
 
 wsServer.on('close', () => console.log('Websocket client has disconnected!'))
