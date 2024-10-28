@@ -10,7 +10,14 @@ export enum MessageType {
   ADD_SHIPS = 'add_ships',
   ATTACK = 'attack',
   RANDOM_ATTACK = 'randomAttack',
+  TURN = 'turn',
 };
+
+export enum AttackType {
+  MISS = 'miss',
+  KILLED = 'killed',
+  SHOT = 'shot',
+}
 
 export type User = {
   name: string;
@@ -23,6 +30,11 @@ export type Message = {
   type: string;
   data: string;
   id: number;
+};
+
+export type ResponseType = {
+  wsId: string,
+  message: string,
 };
 
 export type Room = {
@@ -40,8 +52,11 @@ export type Game = {
   gameId: number;
   player1: string;
   player1Field: Ship[] | null;
+  player1Board: BoardTile[] | null;
   player2: string;
   player2Field: Ship[] | null;
+  player2Board: BoardTile[] | null;
+  turn: string;
 };
 
 export type Ship = {
@@ -49,4 +64,11 @@ export type Ship = {
   direction: boolean;
   type: string;
   length: number;
-}
+};
+
+export type BoardTile = {
+  status: AttackType;
+  x: number;
+  y: number;
+  shipId: number;
+};

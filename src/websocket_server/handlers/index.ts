@@ -3,11 +3,11 @@ import { Message, MessageType } from "../types";
 import { loginUser } from "../models/user";
 import { addUserToRoom, createRoom, updateRoom } from "../models/room";
 import { sendBroadcastMessage, sendMessageToUsers } from "..";
-import { addShips } from "../models/game";
+import { addShips, attack, getTurn } from "../models/game";
 
 
 export const messageHandler = (ws: WebSocket, websocketId: string, message: RawData) => {
-  console.log(`-> Websocket got the message: ${message.toString()}`);
+  console.log("\x1b[36m", "-> Websocket got the message: ", "\x1b[0m", message.toString());
   const parsedMessage: Message = JSON.parse(message.toString());
   switch (parsedMessage.type) {
     case MessageType.USER_LOGIN:
@@ -22,13 +22,21 @@ export const messageHandler = (ws: WebSocket, websocketId: string, message: RawD
       sendBroadcastMessage(updateRoom());
       break;  
     case MessageType.ADD_TO_ROOM:
-      const response = addUserToRoom(websocketId, JSON.parse(parsedMessage.data));
       sendBroadcastMessage(updateRoom());
-      sendMessageToUsers(response);
+      sendMessageToUsers(addUserToRoom(websocketId, JSON.parse(parsedMessage.data)));
       break;
     case MessageType.ADD_SHIPS:
-      sendMessageToUsers(addShips(parsedMessage.data));
+      const addShipResponse = addShips(parsedMessage.data);
+      sendMessageToUsers(addShipResponse);
+      if (addShipResponse !== null) sendMessageToUsers(getTurn(parsedMessage.data));
       break;
+    case MessageType.ATTACK:
+      const attackResponse = attack(parsedMessage.data);
+      sendMessageToUsers(attackResponse);
+      if (attackResponse !== null) sendMessageToUsers(getTurn(parsedMessage.data));
+      break;
+    case MessageType.RANDOM_ATTACK:
+      break;  
     default:
       process.exit();
   }
@@ -36,6 +44,6 @@ export const messageHandler = (ws: WebSocket, websocketId: string, message: RawD
 
 export const sendMessage = (ws: WebSocket, message: string | null) => {
   if (!message) return;
-  console.log(`<- Websocket sent the message: ${message}`);
+  console.log("\x1b[36m", "<- Websocket sent the message: ", "\x1b[0m", message);
   ws.send(message);
 }

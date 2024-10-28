@@ -1,7 +1,7 @@
 import { WebSocketServer, WebSocket } from "ws";
 import { config } from 'dotenv';
 import { messageHandler } from './handlers'
-import { Message, User, WebSocketWithId } from "./types";
+import { Message, ResponseType, User, WebSocketWithId } from "./types";
 
 
 config();
@@ -36,20 +36,21 @@ wsServer.on('close', () => console.log('Websocket client has disconnected!'));
 export const sendBroadcastMessage = (message: string | null) => {
   if (!message) return;
   webSockets.forEach((x: WebSocketWithId) => {
-    console.log(`<- Websocket sent the message: ${message}`);
+    console.log("\x1b[36m", "<- Websocket sent the message: ", "\x1b[0m", message);
     x.wsocket.send(message);
   });
 }
 
 export const sendMessageToUsers = (message: string | null) => {
   if (!message) return;
-  const responses = JSON.parse(message);
-  responses.forEach((response: string) => {
-    const { wsId, message } = JSON.parse(response);
-    webSockets.filter((x: WebSocketWithId) => x.id === wsId)
-      .forEach((y: WebSocketWithId) => {
-        y.wsocket.send(JSON.stringify(message));
-      });
-  });
-  
+  try {
+    const responses : ResponseType[] = JSON.parse(message);
+    responses.forEach((response: ResponseType) => {
+      webSockets.filter((x: WebSocketWithId) => x.id === response['wsId'])
+        .forEach((y: WebSocketWithId) => {
+          console.log("\x1b[36m", "<- Websocket sent the message: ", "\x1b[0m", response['message']);
+          y.wsocket.send(response['message']);
+        });
+    });
+  } catch (error) { console.log(error) }
 }

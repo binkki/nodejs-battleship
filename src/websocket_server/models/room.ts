@@ -42,27 +42,27 @@ export const addUserToRoom = (websocketId : string, data: { indexRoom: number })
   const oldPlayerRoomIndex = rooms.findIndex((x: Room) => x.player1 === websocketId);
   delete rooms[oldPlayerRoomIndex];
   const currentGame = createGame(selectedRoom.player1 ?? "", selectedRoom.player2);
-  const responsePlayer1 = JSON.stringify({
+  const responsePlayer1 = ({
     wsId: selectedRoom.player1,
-    message: {
+    message: JSON.stringify({
       type: MessageType.CREATE_GAME,
       data: JSON.stringify({
         idGame: currentGame.gameId,
         idPlayer: selectedRoom.player1,
       }),
       id: 0,
-    },    
+    }),    
   });
-  const responsePlayer2 = JSON.stringify({
+  const responsePlayer2 = ({
     wsId: selectedRoom.player2,
-    message: {
+    message: JSON.stringify({
       type: MessageType.CREATE_GAME,
       data: JSON.stringify({
         idGame: currentGame.gameId,
         idPlayer: selectedRoom.player2,
       }),
       id: 0,
-    },    
+    }),    
   });
   return JSON.stringify([responsePlayer1, responsePlayer2]);
 }
