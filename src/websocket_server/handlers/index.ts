@@ -3,7 +3,7 @@ import { Message, MessageType } from "../types";
 import { loginUser } from "../models/user";
 import { addUserToRoom, createRoom, updateRoom } from "../models/room";
 import { sendBroadcastMessage, sendMessageToUsers } from "..";
-import { addShips, attack, getTurn } from "../models/game";
+import { addShips, attack, getTurn, randomAttack } from "../models/game";
 
 
 export const messageHandler = (ws: WebSocket, websocketId: string, message: RawData) => {
@@ -36,6 +36,9 @@ export const messageHandler = (ws: WebSocket, websocketId: string, message: RawD
       if (attackResponse !== null) sendMessageToUsers(getTurn(parsedMessage.data));
       break;
     case MessageType.RANDOM_ATTACK:
+      const randomAttackResponse = randomAttack(parsedMessage.data);
+      sendMessageToUsers(randomAttackResponse);
+      if (randomAttackResponse !== null) sendMessageToUsers(getTurn(parsedMessage.data));
       break;  
     default:
       process.exit();

@@ -17,6 +17,7 @@ export enum AttackType {
   MISS = 'miss',
   KILLED = 'killed',
   SHOT = 'shot',
+  ALIVE = 'alive',
 }
 
 export type User = {
