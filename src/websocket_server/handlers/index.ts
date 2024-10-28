@@ -2,8 +2,8 @@ import { WebSocket, RawData } from "ws";
 import { Message, MessageType } from "../types";
 import { loginUser } from "../models/user";
 import { addUserToRoom, createRoom, updateRoom } from "../models/room";
-import { send } from "process";
-import { sendBroadcastMessage } from "..";
+import { sendBroadcastMessage, sendMessageToUsers } from "..";
+import { addShips } from "../models/game";
 
 
 export const messageHandler = (ws: WebSocket, websocketId: string, message: RawData) => {
@@ -24,7 +24,10 @@ export const messageHandler = (ws: WebSocket, websocketId: string, message: RawD
     case MessageType.ADD_TO_ROOM:
       const response = addUserToRoom(websocketId, JSON.parse(parsedMessage.data));
       sendBroadcastMessage(updateRoom());
-      sendBroadcastMessage(response);
+      sendMessageToUsers(response);
+      break;
+    case MessageType.ADD_SHIPS:
+      sendMessageToUsers(addShips(parsedMessage.data));
       break;
     default:
       process.exit();

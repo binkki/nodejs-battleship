@@ -1,6 +1,7 @@
 import { randomUUID } from "crypto";
 import { Message, MessageType, Room } from "../types";
 import { getUserById } from "./user";
+import { createGame } from "./game";
 
 const rooms: Room[] = [];
 let maxRoomId = 0;
@@ -40,15 +41,30 @@ export const addUserToRoom = (websocketId : string, data: { indexRoom: number })
   selectedRoom.player2 = websocketId;
   const oldPlayerRoomIndex = rooms.findIndex((x: Room) => x.player1 === websocketId);
   delete rooms[oldPlayerRoomIndex];
-  const response = {
-    type: MessageType.CREATE_GAME,
-    data: JSON.stringify({
-      idGame: 0,
-      idPlayer: randomUUID(),
-    }),
-    id: 0,
-  }
-  return JSON.stringify(response);
+  const currentGame = createGame(selectedRoom.player1 ?? "", selectedRoom.player2);
+  const responsePlayer1 = JSON.stringify({
+    wsId: selectedRoom.player1,
+    message: {
+      type: MessageType.CREATE_GAME,
+      data: JSON.stringify({
+        idGame: currentGame.gameId,
+        idPlayer: selectedRoom.player1,
+      }),
+      id: 0,
+    },    
+  });
+  const responsePlayer2 = JSON.stringify({
+    wsId: selectedRoom.player2,
+    message: {
+      type: MessageType.CREATE_GAME,
+      data: JSON.stringify({
+        idGame: currentGame.gameId,
+        idPlayer: selectedRoom.player2,
+      }),
+      id: 0,
+    },    
+  });
+  return JSON.stringify([responsePlayer1, responsePlayer2]);
 }
 
 export const updateRoom = () : string => {
