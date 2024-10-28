@@ -32,13 +32,17 @@ export const messageHandler = (ws: WebSocket, websocketId: string, message: RawD
       break;
     case MessageType.ATTACK:
       const attackResponse = attack(parsedMessage.data);
-      sendMessageToUsers(attackResponse);
-      if (attackResponse !== null) sendMessageToUsers(getTurn(parsedMessage.data));
+      if (attackResponse !== null) {
+        sendMessageToUsers(attackResponse);
+        sendMessageToUsers(getTurn(parsedMessage.data));  
+      }
       break;
     case MessageType.RANDOM_ATTACK:
       const randomAttackResponse = randomAttack(parsedMessage.data);
-      sendMessageToUsers(randomAttackResponse);
-      if (randomAttackResponse !== null) sendMessageToUsers(getTurn(parsedMessage.data));
+      if (randomAttackResponse !== null) {
+        sendMessageToUsers(randomAttackResponse);
+        sendMessageToUsers(getTurn(parsedMessage.data));  
+      }
       break;  
     default:
       process.exit();

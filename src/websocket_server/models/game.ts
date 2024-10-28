@@ -68,6 +68,9 @@ export const attack = (data: string) : string | null => {
   if (indexPlayer !== game[0].player1 && indexPlayer !== game[0].player2) return null;
   const attackStatus = getAttackResult(game[0], game[0].turn, x, y);
   if (attackStatus === null) return null;
+  if (attackStatus === AttackType.KILLED && checkGameFinish(game[0])) {
+    return finishGame(game[0]);
+  }
   const responseMwssage = {
     type: MessageType.ATTACK,
     data: JSON.stringify({
@@ -128,34 +131,40 @@ const getAttackResult = (currentGame: Game, playerId: string, x: number, y: numb
     : currentGame.player1Board;
   if (board === null) return null;
   if (board[x][y].status !== AttackType.ALIVE) return null;
-  board[x][y].status = AttackType.MISS;
   const shipId = board[x][y].shipId;
-  if (shipId === -1) return AttackType.MISS;
+  if (shipId === -1) {
+    board[x][y].status = AttackType.MISS;
+    return AttackType.MISS;
+  }
   else {
+    board[x][y].status = AttackType.SHOT;
     const isShipKilled = checkShipKilled(currentGame, playerId, shipId);
     if (isShipKilled) {
-      board.forEach((_: Array<BoardTile>, i: number) => 
-        (_: BoardTile, j: number) => board[i][j].status == AttackType.KILLED
-      );
+      for (let i = 0; i < board.length; i += 1) {
+        for (let j = 0; j < board[i].length; j += 1) {
+          if (board[i][j].shipId === shipId) {
+            board[i][j].status = AttackType.KILLED;
+          }
+        }
+      }
       return AttackType.KILLED;
-    }
-    board[x][y].status = AttackType.SHOT;
+    }    
     return AttackType.SHOT;
   }
 }
 
 const checkShipKilled = (game: Game, playerId: string, shipId: number) : boolean => {
   const board = playerId === game.player1
-    ? game.player1Board
-    : game.player2Board;
+    ? game.player2Board
+    : game.player1Board;
   if (game.player1Field === null || game.player2Field === null) return false;
   const ship = playerId === game.player1
-  ? game.player1Field[shipId]
-  : game.player2Field[shipId];
+  ? game.player2Field[shipId]
+  : game.player1Field[shipId];
   const shipTiles = board?.flat().filter((x: BoardTile) =>
     x.shipId === shipId && x.status === AttackType.SHOT
   );
-  return shipTiles?.length !== ship.length;
+  return shipTiles?.length === ship.length;
 }
 
 export const getTurn = (data: string) : string | null => {
@@ -196,8 +205,40 @@ export const randomAttack = (data: string) : string | null => {
     for (let j = 0; j < 10; j += 1) {
       if (board[i][j].status === AttackType.ALIVE) {
         return attack(JSON.stringify({ gameId, x: i, y: j, indexPlayer }));
-      } 
+      }
     }
   }
   return null;
+}
+
+const finishGame = (game: Game) : string => {
+  const response = {
+    type: MessageType.FINISH,
+    data: JSON.stringify({ winPlayer: game.turn }),
+    id: 0,
+  };
+  return JSON.stringify([
+    {
+      wsId: game.player1,
+      message: JSON.stringify(response),
+    },
+    {
+      wsId: game.player2,
+      message: JSON.stringify(response),
+    }
+  ]);
+}
+
+const checkGameFinish = (game: Game) : boolean => {
+  const board = game.turn === game.player1
+    ? game.player2Board
+    : game.player1Board;
+  if (board === null) return false;
+  for (let i = 0; i < 10; i += 1) {
+    for (let j = 0; j < 10; j += 1) {
+      if (board[i][j].shipId !== -1 && board[i][j].status !== AttackType.KILLED)
+        return false;
+    }
+  }
+  return true;
 }
