@@ -52,10 +52,10 @@ export type Game = {
   gameId: number;
   player1: string;
   player1Field: Ship[] | null;
-  player1Board: BoardTile[] | null;
+  player1Board: BoardTile[][] | null;
   player2: string;
   player2Field: Ship[] | null;
-  player2Board: BoardTile[] | null;
+  player2Board: BoardTile[][] | null;
   turn: string;
 };
 
@@ -68,7 +68,5 @@ export type Ship = {
 
 export type BoardTile = {
   status: AttackType;
-  x: number;
-  y: number;
   shipId: number;
 };

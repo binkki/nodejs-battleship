@@ -1,5 +1,4 @@
-import { randomUUID } from "crypto";
-import { Message, MessageType, Room } from "../types";
+import { MessageType, Room } from "../types";
 import { getUserById } from "./user";
 import { createGame } from "./game";
 

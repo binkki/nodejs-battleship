@@ -1,4 +1,4 @@
-import { AttackType, BoardTile, Game, Message, MessageType, Ship } from "../types";
+import {AttackType, BoardTile, Game, MessageType, Ship} from "../types";
 
 const games : Game[] = [];
 
@@ -92,88 +92,55 @@ export const attack = (data: string) : string | null => {
   ]);
 }
 
-export const generateBoard = (ships: Ship[] | null) : BoardTile[] => {
-  const generatedBoard = Array<BoardTile>(100);
-  for (let i = 0; i < 100; i += 1) {
-    const tileX = Math.floor(i / 10);
-    generatedBoard[i] = {
-      status: AttackType.MISS,
-      x: tileX,
-      y: i - (tileX * 10),
-      shipId: -1,
+export const generateBoard = (ships: Ship[] | null) : BoardTile[][] => {
+  const boardDimensionSize = 10;
+  const generatedBoard = Array<BoardTile[]>(boardDimensionSize);
+  for (let i = 0; i < boardDimensionSize; i += 1) {
+    generatedBoard[i] = Array<BoardTile>(boardDimensionSize);
+    for (let j = 0; j < boardDimensionSize; j += 1) {
+      generatedBoard[i][j] = {
+        status: AttackType.MISS,
+        shipId: -1
+      };
     }
   }
   let shipCount = 0;
   ships?.forEach((currentShip: Ship) => {
     const { position, direction, length, type } = currentShip;
-    const { x, y } = JSON.parse(JSON.stringify(position));
+    let { x, y } = JSON.parse(JSON.stringify(position));
     if (direction) {
       for (let i = y; i < y + length; i += 1) {
-        const newTile : BoardTile = {
-          status: AttackType.MISS,
-          x,
-          y: i,
-          shipId: shipCount,
-        };
         const index = i * 10 + x;
-        generatedBoard[index] = newTile;
+        generatedBoard[x][i].shipId = shipCount;
       }
-      shipCount += 1;
     } else {
       for (let i = x; i < x + length; i += 1) {
-        const newTile : BoardTile = {
-          status: AttackType.MISS,
-          x: i,
-          y,
-          shipId: shipCount,
-        };
         const index = i * 10 + x;
-        generatedBoard[index] = newTile;
+        generatedBoard[i][y].shipId = shipCount;
       }
-      shipCount += 1;
     }
+    shipCount += 1;
   });
   return generatedBoard;
 }
 
-const getAttackResult = (game: Game, playerId: string, x: number, y: number) : AttackType | null => {
-  const board = playerId === game.player1
-    ? game.player2Board
-    : game.player1Board;
+const getAttackResult = (currentGame: Game, playerId: string, x: number, y: number) : AttackType | null => {
+  const board = playerId === currentGame.player1
+    ? currentGame.player2Board
+    : currentGame.player1Board;
   if (board === null) return null;
-  const index = y * 10 + x;
-  if (board[index].shipId < 0) return AttackType.MISS;
-  if (board[index].status === AttackType.SHOT || board[index].status === AttackType.KILLED) return null;
-  const shipId = board[index].shipId;
-  games.forEach((x: Game) => {
-    if (x.gameId === game.gameId) {
-      if (x.player2Board && playerId === game.player1) {
-        x.player2Board[index].status = AttackType.SHOT;
-      } else if (x.player1Board && playerId === game.player2) {
-        x.player1Board[index].status = AttackType.SHOT;
-      }
+  if (board[x][y].status === AttackType.SHOT || board[x][y].status === AttackType.KILLED) return null;
+  const shipId = board[x][y].shipId;
+  if (shipId === -1) return AttackType.MISS;
+  else {
+    const isShipKilled = checkShipKilled(currentGame, playerId, shipId);
+    if (isShipKilled) {
+      board.forEach((_: Array<BoardTile>, i: number) => (_: BoardTile, j: number) => board[i][j].status == AttackType.KILLED);
+      return AttackType.KILLED;
     }
-  });
-  board[index].status = AttackType.SHOT;
-  const isShipKilled = checkShipKilled(game, playerId, shipId);
-  if (isShipKilled) {
-    games.forEach((x: Game) => {
-      if (x.gameId === game.gameId) {
-        if (playerId === game.player1) {
-          for (let i = 0; i < 100; i += 1) {
-            if (x.player2Board && x.player2Board[i].shipId === shipId)
-              x.player2Board[i].status = AttackType.KILLED;
-          }
-        } else {
-          for (let i = 0; i < 100; i += 1) {
-            if (x.player1Board && x.player1Board[i].shipId === shipId)
-              x.player1Board[i].status = AttackType.KILLED;
-          }
-        }
-      }
-    });
-    return AttackType.KILLED;
-  } else return AttackType.SHOT;
+
+    return AttackType.SHOT;
+  }
 }
 
 const checkShipKilled = (game: Game, playerId: string, shipId: number) : AttackType => {
@@ -184,7 +151,7 @@ const checkShipKilled = (game: Game, playerId: string, shipId: number) : AttackT
   const ship = playerId === game.player1
   ? game.player1Field[shipId]
   : game.player2Field[shipId];
-  const shipTiles = board?.filter((x: BoardTile) => 
+  const shipTiles = board?.flat().filter((x: BoardTile) =>
     x.shipId === shipId && x.status !== AttackType.MISS
   );
   return shipTiles?.length !== ship.length ? AttackType.KILLED : AttackType.MISS;

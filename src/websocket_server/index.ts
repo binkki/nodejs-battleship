@@ -1,7 +1,7 @@
 import { WebSocketServer, WebSocket } from "ws";
 import { config } from 'dotenv';
 import { messageHandler } from './handlers'
-import { Message, ResponseType, User, WebSocketWithId } from "./types";
+import { ResponseType, WebSocketWithId } from "./types";
 
 
 config();
