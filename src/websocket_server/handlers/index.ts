@@ -1,7 +1,9 @@
 import { WebSocket, RawData } from "ws";
 import { Message, MessageType } from "../types";
 import { loginUser } from "../models/user";
-import { createRoom } from "../models/room";
+import { addUserToRoom, createRoom, updateRoom } from "../models/room";
+import { send } from "process";
+import { sendBroadcastMessage } from "..";
 
 
 export const messageHandler = (ws: WebSocket, websocketId: string, message: RawData) => {
@@ -13,16 +15,24 @@ export const messageHandler = (ws: WebSocket, websocketId: string, message: RawD
         ...JSON.parse(parsedMessage.data),
         wsId: websocketId,
       }));
+      sendBroadcastMessage(updateRoom());
       break;
     case MessageType.CREATE_ROOM:
-      sendMessage(ws, createRoom(websocketId));      
+      sendMessage(ws, createRoom(websocketId));
+      sendBroadcastMessage(updateRoom());
       break;  
+    case MessageType.ADD_TO_ROOM:
+      const response = addUserToRoom(websocketId, JSON.parse(parsedMessage.data));
+      sendBroadcastMessage(updateRoom());
+      sendBroadcastMessage(response);
+      break;
     default:
       process.exit();
   }
 }
 
-export const sendMessage = (ws: WebSocket, message: string) => {
+export const sendMessage = (ws: WebSocket, message: string | null) => {
+  if (!message) return;
   console.log(`<- Websocket sent the message: ${message}`);
   ws.send(message);
 }

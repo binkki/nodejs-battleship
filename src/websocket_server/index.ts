@@ -20,4 +20,13 @@ wsServer.on("connection", (ws: WebSocket, req) => {
   });
 });
 
-wsServer.on('close', () => console.log('Websocket client has disconnected!'))
+wsServer.on('close', () => console.log('Websocket client has disconnected!'));
+
+
+export const sendBroadcastMessage = (message: string | null) => {
+  if (!message) return;
+  wsServer.clients.forEach((x: WebSocket) => {
+    console.log(`<- Websocket sent the message: ${message}`);
+    x.send(message);
+  });
+}
